@@ -1,0 +1,84 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <title>Piedra, Papel o Tijera - Python en la Web</title>
+    <script src="https://cdn.jsdelivr.net/pyodide/v0.23.4/full/pyodide.js"></script>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            text-align: center;
+            padding: 50px;
+        }
+        button {
+            margin: 10px;
+            padding: 10px 20px;
+            font-size: 20px;
+            cursor: pointer;
+        }
+        #resultado {
+            margin-top: 30px;
+            font-size: 24px;
+            font-weight: bold;
+        }
+    </style>
+</head>
+<body>
+
+    <h1>Piedra, Papel o Tijera</h1>
+
+    <div id="opciones">
+        <button onclick="jugar('piedra')">Piedra</button>
+        <button onclick="jugar('papel')">Papel</button>
+        <button onclick="jugar('tijera')">Tijera</button>
+    </div>
+
+    <div id="resultado">¡Elige una opción!</div>
+
+    <script>
+        let pyodideReady = false;
+        let pyodide;
+
+        async function main() {
+            pyodide = await loadPyodide();
+            await pyodide.loadPackagesFromImports();
+            pyodideReady = true;
+        }
+
+        main();
+
+        async function jugar(eleccionUsuario) {
+            if (!pyodideReady) {
+                document.getElementById('resultado').innerText = 'Cargando Python...';
+                return;
+            }
+
+            const codigoPython = `
+import random
+
+opciones = ['piedra', 'papel', 'tijera']
+
+usuario = '${eleccionUsuario}'
+computadora = random.choice(opciones)
+
+def determinar_ganador(usuario, computadora):
+    if usuario == computadora:
+        return 'Empate'
+    elif (usuario == 'piedra' and computadora == 'tijera') or \
+         (usuario == 'papel' and computadora == 'piedra') or \
+         (usuario == 'tijera' and computadora == 'papel'):
+        return '¡Ganaste!'
+    else:
+        return 'Perdiste'
+
+resultado = f"Tú elegiste {usuario}, la computadora eligió {computadora}.\\n{determinar_ganador(usuario, computadora)}"
+resultado
+            `;
+
+            const resultado = await pyodide.runPythonAsync(codigoPython);
+            document.getElementById('resultado').innerText = resultado;
+        }
+    </script>
+
+</body>
+</html>
